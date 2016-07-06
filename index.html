@@ -126,11 +126,13 @@ function onStopButtonClick() {
     .then(_ => {
       log('Notifications stopped');
       txCharacteristic.removeEventListener('characteristicvaluechanged', handleNotifications);
-      // gattServer.disconnect();
     })
     .catch(error => {
       log('Argh! ' + error);
     });
+
+    log('Disconnecting...');
+    gattServer.disconnect();
   }
 }
 
