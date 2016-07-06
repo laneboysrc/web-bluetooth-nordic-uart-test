@@ -132,7 +132,7 @@ function onSendButtonClick() {
       log('repeat() ' + count);
       if (count > 0) {
         log('sending');
-        rxCharacteristic.writeValue(str2ab("Hello world " + i + "\n"))
+        rxCharacteristic.writeValue(str2ab("Hello world " + count + "\n"))
         .then(_ => {
           log('done: count=' + count);
           repeat(count - 1);
