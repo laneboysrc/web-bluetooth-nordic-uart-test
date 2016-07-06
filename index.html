@@ -99,6 +99,7 @@ function onStartButtonClick() {
     // ]);
   })
   .then(tx_characteristic => {
+    log('Starting notification...');
     txCharacteristic = tx_characteristic;
     return txCharacteristic.startNotifications().then(_ => {
       log('Notifications started');
