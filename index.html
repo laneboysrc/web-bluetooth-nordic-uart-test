@@ -121,6 +121,7 @@ function onStartButtonClick() {
 
 function onStopButtonClick() {
   if (txCharacteristic) {
+    log('Stopping notifications...');
     txCharacteristic.stopNotifications()
     .then(_ => {
       log('Notifications stopped');
