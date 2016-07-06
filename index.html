@@ -39,6 +39,7 @@ pre {
 <form>
   <button id="connect">Connect</button>
   <button id="disconnect">Disconnect</button>
+  <button id="send">Send 'Hello world'</button>
 </form>
 
 <h3>Log output</h3>
@@ -52,7 +53,7 @@ var NUS_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 var NUS_TX_CHARACTERISTIC_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 var NUS_RX_CHARACTERISTIC_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
 
-var gattServer;
+var log;
 var txCharacteristic;
 var rxCharacteristic;
 
@@ -80,7 +81,6 @@ function onStartButtonClick() {
     return device.gatt.connect();
   })
   .then(server => {
-    // gattServer = server;
     log('Getting Service...');
     return server.getPrimaryService(serviceUuid);
   })
@@ -104,27 +104,11 @@ function onStartButtonClick() {
         }),
     ]);
   })
-  // .then(characteristic => {
-  //   log('Starting notification...');
-  //   txCharacteristic = characteristic;
-  //   return txCharacteristic.startNotifications().then(_ => {
-  //     log('Notifications started');
-  //     txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
-  //   });
-  // })
   .catch(error => {
     log('Argh! ' + error);
   });
 }
 
-// function handleTxCharacteristic(characteristic) {
-//   txCharacteristic = characteristic;
-//   log('Starting notification...');
-//   return txCharacteristic.startNotifications().then(_ => {
-//     log('Notifications started');
-//     txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
-//   });
-// }
 
 function onStopButtonClick() {
   if (txCharacteristic) {
@@ -137,11 +121,23 @@ function onStopButtonClick() {
     .catch(error => {
       log('Argh! ' + error);
     });
-
-    // log('Disconnecting...');
-    // gattServer.disconnect();
   }
 }
+
+function onSendButtonClick() {
+  if (rxCharacteristic) {
+    log('Sending string via RX characteristic...');
+    rxCharacteristic.writeValue('Hello world\r\n')
+    .then(_ => {
+      log('String sent.');
+    })
+    .catch(error => {
+      log('Argh! ' + error);
+    });
+
+  }
+}
+
 
 function handleNotifications(event) {
   let value = event.target.value;
@@ -189,6 +185,14 @@ document.querySelector('#disconnect').addEventListener('click', function(event) 
   }
 });
 
+document.querySelector('#send').addEventListener('click', function(event) {
+  event.stopPropagation();
+  event.preventDefault();
+
+  if (isWebBluetoothEnabled()) {
+    onSendButtonClick();
+  }
+});
 </script>
 
 </body>
