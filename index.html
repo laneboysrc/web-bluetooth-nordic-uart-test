@@ -89,7 +89,14 @@ function onStartButtonClick() {
     // return service.getCharacteristic(tx_characteristicUuid);
     return Promise.all([
       service.getCharacteristic(tx_characteristicUuid)
-        .then(handleTxCharacteristic),
+        .then(characteristic => {
+          log('Starting notification...');
+          txCharacteristic = characteristic;
+          return txCharacteristic.startNotifications().then(_ => {
+            log('Notifications started');
+            txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
+          });
+        }),
     //   // service.getCharacteristic(rx_characteristicUuid)
     //   //   .then(rx_characteristic => {
     //   //     rxCharacteristic = rx_characteristic;
