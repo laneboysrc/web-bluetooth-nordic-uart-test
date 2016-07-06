@@ -80,7 +80,7 @@ function onStartButtonClick() {
     return device.gatt.connect();
   })
   .then(server => {
-    gattServer = server;
+    // gattServer = server;
     log('Getting Service...');
     return server.getPrimaryService(serviceUuid);
   })
@@ -131,8 +131,8 @@ function onStopButtonClick() {
       log('Argh! ' + error);
     });
 
-    log('Disconnecting...');
-    gattServer.disconnect();
+    // log('Disconnecting...');
+    // gattServer.disconnect();
   }
 }
 
