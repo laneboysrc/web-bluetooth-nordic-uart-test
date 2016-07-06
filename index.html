@@ -86,38 +86,38 @@ function onStartButtonClick() {
   })
   .then(service => {
     log('Getting Characteristics...');
-    return service.getCharacteristic(tx_characteristicUuid);
-    //     .then(handleTxCharacteristic),
-    // return Promise.all([
-    //   service.getCharacteristic(tx_characteristicUuid)
-    //     .then(handleTxCharacteristic),
+    // return service.getCharacteristic(tx_characteristicUuid);
+    return Promise.all([
+      service.getCharacteristic(tx_characteristicUuid)
+        .then(handleTxCharacteristic),
     //   // service.getCharacteristic(rx_characteristicUuid)
     //   //   .then(rx_characteristic => {
     //   //     rxCharacteristic = rx_characteristic;
     //   //     log('Rx charactersitic obtained');
     //   //   })
-    // ]);
+    ]);
   })
-  .then(characteristic => {
-    log('Starting notification...');
-    txCharacteristic = characteristic;
-    return txCharacteristic.startNotifications().then(_ => {
-      log('Notifications started');
-      txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
-    });
-  })
+  // .then(characteristic => {
+  //   log('Starting notification...');
+  //   txCharacteristic = characteristic;
+  //   return txCharacteristic.startNotifications().then(_ => {
+  //     log('Notifications started');
+  //     txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
+  //   });
+  // })
   .catch(error => {
     log('Argh! ' + error);
   });
 }
 
-// function handleTxCharacteristic(characteristic) {
-//   txCharacteristic = characteristic;
-//   return txCharacteristic.startNotifications().then(_ => {
-//     log('Notifications started');
-//     txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
-//   });
-// }
+function handleTxCharacteristic(characteristic) {
+  txCharacteristic = characteristic;
+  log('Starting notification...');
+  return txCharacteristic.startNotifications().then(_ => {
+    log('Notifications started');
+    txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
+  });
+}
 
 function onStopButtonClick() {
   if (txCharacteristic) {
