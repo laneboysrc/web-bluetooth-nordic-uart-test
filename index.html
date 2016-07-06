@@ -130,7 +130,7 @@ function onSendButtonClick() {
 
     var repeat = function (count) {
       if (count > 0) {
-        rxCharacteristic.writeValue(str2ab("Hello world " + count + "\n"))
+        rxCharacteristic.writeValue(str2ab("Hello world " + count + " abcdefghijklmnopqrstuvwxyz\n"))
         .then(_ => {
           repeat(count - 1);
         })
