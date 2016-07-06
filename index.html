@@ -149,7 +149,13 @@ function handleNotifications(event) {
   //   a.push('0x' + ('00' + value.getUint8(i).toString(16)).slice(-2));
   // }
   // log('> ' + a.join(' '));
-  log('> ' + ab2str(value));
+
+  result = ''
+  for (let i = 0; i < value.byteLength; i++) {
+    result += String.fromCharCode(value.getUint8(i));
+  }
+
+  log('> ' + result);
 }
 
 
