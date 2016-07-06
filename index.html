@@ -127,15 +127,19 @@ function onStopButtonClick() {
 function onSendButtonClick() {
   if (rxCharacteristic) {
     log('Sending string via RX characteristic...');
-    for (let i = 0; i < 50; i++) {
-      rxCharacteristic.writeValue(str2ab("Hello world " + i + "\n"))
-      .then(_ => {
-      })
-      .catch(error => {
-        log('Argh! ' + error);
-      });
-    }
 
+    function repeat(count) {
+      if (count > 0) {
+        rxCharacteristic.writeValue(str2ab("Hello world " + i + "\n"))
+        .then(_ => {
+          repeat(count - 1);
+        })
+        .catch(error => {
+          log('Argh! ' + error);
+        });
+      }
+    }
+    repeat(50);
   }
 }
 
