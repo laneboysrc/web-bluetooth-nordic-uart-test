@@ -127,7 +127,12 @@ function onStartButtonClick() {
 function onStopButtonClick() {
   if (txCharacteristic) {
     log('Stopping notifications...');
-    txCharacteristic.removeEventListener('characteristicvaluechanged', handleNotifications);
+    try {
+      txCharacteristic.removeEventListener('characteristicvaluechanged', handleNotifications);
+    }
+    catch(error) {
+      log('Argh! ' + error);
+    }
     txCharacteristic = null;
     // txCharacteristic.stopNotifications()
     // .then(_ => {
