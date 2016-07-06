@@ -111,21 +111,21 @@ function onStartButtonClick() {
   });
 }
 
-function handleTxCharacteristic(characteristic) {
-  txCharacteristic = characteristic;
-  return txCharacteristic.startNotifications().then(_ => {
-    log('Notifications started');
-    txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
-  });
-}
+// function handleTxCharacteristic(characteristic) {
+//   txCharacteristic = characteristic;
+//   return txCharacteristic.startNotifications().then(_ => {
+//     log('Notifications started');
+//     txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
+//   });
+// }
 
 function onStopButtonClick() {
   if (txCharacteristic) {
     txCharacteristic.stopNotifications()
     .then(_ => {
       log('Notifications stopped');
-      txCharacteristic.removeEventListener('tx_characteristicvaluechanged', handleNotifications);
-      // gattServer.disconnect();
+      txCharacteristic.removeEventListener('characteristicvaluechanged', handleNotifications);
+      gattServer.disconnect();
     })
     .catch(error => {
       log('Argh! ' + error);
