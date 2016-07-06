@@ -80,11 +80,11 @@ function onStartButtonClick() {
     return device.gatt.connect();
   })
   .then(server => {
+    gattServer = server;
     log('Getting Service...');
     return server.getPrimaryService(serviceUuid);
   })
   .then(service => {
-    gattServer = service;
     log('Getting Characteristics...');
     return Promise.all([
       service.getCharacteristic(tx_characteristicUuid)
@@ -94,6 +94,9 @@ function onStartButtonClick() {
             log('Notifications started');
             txCharacteristic.addEventListener('tx_characteristicvaluechanged', handleNotifications);
           });
+        })
+        .catch(error => {
+          log('Argh! ' + error);
         }),
       // service.getCharacteristic(rx_characteristicUuid)
       //   .then(rx_characteristic => {
