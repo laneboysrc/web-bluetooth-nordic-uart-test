@@ -128,6 +128,8 @@ function onSendButtonClick() {
   if (rxCharacteristic) {
     log('Sending string via RX characteristic...');
     rxCharacteristic.writeValue(str2ab("Hello world\r\n"))
+    .then(_ => {
+    })
     .catch(error => {
       log('Argh! ' + error);
     });
