@@ -7,38 +7,11 @@
 <style>
 body {
   background-color: #ffffff;
-  box-sizing: border-box;
-  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-family: "Helvetica", "Arial", sans-serif;
 }
 
-@media screen and (min-width: 832px) {
-  body {
-    width: 800px;
-    margin: 0 auto;
-  }
-}
-
-h1 {
-  margin-bottom: -0.3em;
-}
-
-h2 {
-  margin-top: 2em;
-}
-
-h3 {
-  margin-bottom: -0.2em;
-  margin-top: 2em;
-}
-
-.pageIcon {
-  height: 2.3em;
-  float: left;
-  margin-right: 0.5em;
-}
-
-.availability {
-  margin-bottom: 2em;
+pre {
+  font-family: monospace;
 }
 
 .output {
@@ -49,94 +22,56 @@ h3 {
   padding: 0.5em;
 }
 
-#status {
-  margin: .5em 0;
-  font-style: italic;
-}
-
 #log {
   margin: .5em 0;
   white-space: pre-wrap;
 }
 
-#status:empty, #log:empty, #content:empty {
+#log:empty {
   display: none;
 }
 
-.highlight {
-  border-radius: 0.75em;
-  border: 1px solid #f0f0f0;
-  display: block;
-  margin: 0.5em;
-  overflow-x: auto;
-  padding: 0.5em;
-}
-
-code {
-  font-family: Inconsolata, Consolas, monospace;
-}
 </style>
 </head>
 <body>
 
 <h1>Using the Nordic UART service with Web-Bluetooth</h1>
-<p>&nbsp;</p>
 <form>
-  <input id="service" type="text" list="services" autofocus placeholder="Bluetooth Service" value="6e400001-b5a3-f393-e0a9-e50e24dcca9e">
-  <input id="characteristic" type="text" list="characteristics" placeholder="Bluetooth Characteristic" value="6e400003-b5a3-f393-e0a9-e50e24dcca9e">
-  <button id="startNotifications">Start notifications</button>
-  <button id="stopNotifications">Stop notifications</button>
+  <button id="startNotifications">Connect</button>
+  <button id="stopNotifications">Disconnect</button>
 </form>
 
-<h3>Live Output</h3>
+<h3>Log output</h3>
 <div id="output" class="output">
-  <div id="content"></div>
-  <div id="status"></div>
   <pre id="log"></pre>
 </div>
 
 <script>
-  var ChromeSamples = {
-    log: function() {
-      var line = Array.prototype.slice.call(arguments).map(function(argument) {
-        return typeof argument === 'string' ? argument : JSON.stringify(argument);
-      }).join(' ');
 
-      document.querySelector('#log').textContent += line + '\n';
-    },
+NUS_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+NUS_TX_CHARACTERISTIC_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+NUS_RX_CHARACTERISTIC_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
 
-    clearLog: function() {
-      document.querySelector('#log').textContent = '';
-    },
-
-    setStatus: function(status) {
-      document.querySelector('#status').textContent = status;
-    },
-
-    setContent: function(newContent) {
-      var content = document.querySelector('#content');
-      while(content.hasChildNodes()) {
-        content.removeChild(content.lastChild);
-      }
-      content.appendChild(newContent);
-    }
-  };
-</script>
+var gattServer;
+var txCharacteristic;
+var rxCharacteristic;
 
 
-<script>
-var myCharacteristic;
+var Logger = {
+  log: function(line) {
+    document.querySelector('#log').textContent += line + '\n';
+  },
+
+  clearLog: function() {
+    document.querySelector('#log').textContent = '';
+  },
+};
+
 
 function onStartButtonClick() {
-  let serviceUuid = document.querySelector('#service').value;
-  if (serviceUuid.startsWith('0x')) {
-    serviceUuid = parseInt(serviceUuid);
-  }
-
-  let characteristicUuid = document.querySelector('#characteristic').value;
-  if (characteristicUuid.startsWith('0x')) {
-    characteristicUuid = parseInt(characteristicUuid);
-  }
+  let serviceUuid = NUS_SERVICE_UUID;
+  let tx_characteristicUuid = NUS_TX_CHARACTERISTIC_UUID;
+  let rx_characteristicUuid = NUS_RX_CHARACTERISTIC_UUID;
 
   log('Requesting Bluetooth Device...');
   navigator.bluetooth.requestDevice({filters: [{services: [serviceUuid]}]})
@@ -149,16 +84,23 @@ function onStartButtonClick() {
     return server.getPrimaryService(serviceUuid);
   })
   .then(service => {
-    log('Getting Characteristic...');
-    return service.getCharacteristic(characteristicUuid);
-  })
-  .then(characteristic => {
-    myCharacteristic = characteristic;
-    return myCharacteristic.startNotifications().then(_ => {
-      log('> Notifications started');
-      myCharacteristic.addEventListener('characteristicvaluechanged',
-        handleNotifications);
-    });
+    gattServer = service;
+    log('Getting Characteristics...');
+    return Promise.all([
+      service.getCharacteristic(tx_characteristicUuid)
+        .then(tx_characteristic => {
+          txCharacteristic = tx_characteristic;
+          return txCharacteristic.startNotifications().then(_ => {
+            log('Notifications started');
+            txCharacteristic.addEventListener('tx_characteristicvaluechanged', handleNotifications);
+          });
+        }),
+      service.getCharacteristic(rx_characteristicUuid)
+        .then(rx_characteristic => {
+          rxCharacteristic = rx_characteristic;
+          log('Rx charactersitic obtained');
+        })
+    ]);
   })
   .catch(error => {
     log('Argh! ' + error);
@@ -166,12 +108,12 @@ function onStartButtonClick() {
 }
 
 function onStopButtonClick() {
-  if (myCharacteristic) {
-    myCharacteristic.stopNotifications()
+  if (txCharacteristic) {
+    txCharacteristic.stopNotifications()
     .then(_ => {
-      log('> Notifications stopped');
-      myCharacteristic.removeEventListener('characteristicvaluechanged',
-        handleNotifications);
+      log('Notifications stopped');
+      txCharacteristic.removeEventListener('tx_characteristicvaluechanged', handleNotifications);
+      gattServer.disconnect();
     })
     .catch(error => {
       log('Argh! ' + error);
@@ -181,50 +123,50 @@ function onStopButtonClick() {
 
 function handleNotifications(event) {
   let value = event.target.value;
-  let a = [];
-  // Convert raw data bytes to hex values just for the sake of showing something.
-  // In the "real" world, you'd use data.getUint8, data.getUint16 or even
-  // TextDecoder to process raw data bytes.
-  for (let i = 0; i < value.byteLength; i++) {
-    a.push('0x' + ('00' + value.getUint8(i).toString(16)).slice(-2));
-  }
-  log('> ' + a.join(' '));
+  // let a = [];
+  // // Convert raw data bytes to hex values just for the sake of showing something.
+  // // In the "real" world, you'd use data.getUint8, data.getUint16 or even
+  // // TextDecoder to process raw data bytes.
+  // for (let i = 0; i < value.byteLength; i++) {
+  //   a.push('0x' + ('00' + value.getUint8(i).toString(16)).slice(-2));
+  // }
+  // log('> ' + a.join(' '));
+  log('> ' + value);
 }
-</script>
 
-<script>
-  document.querySelector('#startNotifications').addEventListener('click', function(event) {
-    event.stopPropagation();
-    event.preventDefault();
 
-    if (isWebBluetoothEnabled()) {
-      ChromeSamples.clearLog();
-      onStartButtonClick();
-    }
-  });
-
-  document.querySelector('#stopNotifications').addEventListener('click', function(event) {
-    event.stopPropagation();
-    event.preventDefault();
-
-    if (isWebBluetoothEnabled()) {
-      onStopButtonClick();
-    }
-  });
-</script>
-
-<script>
-  log = ChromeSamples.log;
-
-  function isWebBluetoothEnabled() {
-    if (navigator.bluetooth) {
-      return true;
-    } else {
-      ChromeSamples.setStatus('Web Bluetooth API is not available.\n' +
-                              'Please make sure the Web Bluetooth flag is enabled.');
-      return false;
-    }
+function isWebBluetoothEnabled() {
+  if (navigator.bluetooth) {
+    return true;
   }
+  else {
+    log('Web Bluetooth API is not available.\n' +
+      'Please make sure the Web Bluetooth flag is enabled.');
+    return false;
+  }
+}
+
+log = Logger.log;
+
+document.querySelector('#startNotifications').addEventListener('click', function(event) {
+  event.stopPropagation();
+  event.preventDefault();
+
+  if (isWebBluetoothEnabled()) {
+    ChromeSamples.clearLog();
+    onStartButtonClick();
+  }
+});
+
+document.querySelector('#stopNotifications').addEventListener('click', function(event) {
+  event.stopPropagation();
+  event.preventDefault();
+
+  if (isWebBluetoothEnabled()) {
+    onStopButtonClick();
+  }
+});
+
 </script>
 
 </body>
