@@ -54,8 +54,9 @@ var NUS_TX_CHARACTERISTIC_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 var NUS_RX_CHARACTERISTIC_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
 
 var log;
-var txCharacteristic;
-var rxCharacteristic;
+var bluetoothDevice = null;
+var txCharacteristic = null;
+var rxCharacteristic = null;
 
 
 var Logger = {
@@ -68,6 +69,16 @@ var Logger = {
   },
 };
 
+function onDisconnected(event) {
+  log('Bluetooth Device disconnected');
+
+  if (txCharacteristic) {
+    txCharacteristic.removeEventListener('characteristicvaluechanged', handleNotifications);
+  }
+
+  txCharacteristic = null;
+  rxCharacteristic = null;
+}
 
 function onStartButtonClick() {
   let serviceUuid = NUS_SERVICE_UUID;
@@ -77,6 +88,9 @@ function onStartButtonClick() {
   log('Requesting Bluetooth Device...');
   navigator.bluetooth.requestDevice({filters: [{services: [serviceUuid]}]})
   .then(device => {
+    bluetoothDevice = device;
+    bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
     log('Connecting to GATT Server...');
     return device.gatt.connect();
   })
@@ -113,14 +127,21 @@ function onStartButtonClick() {
 function onStopButtonClick() {
   if (txCharacteristic) {
     log('Stopping notifications...');
+    txCharacteristic.removeEventListener('characteristicvaluechanged', handleNotifications);
     txCharacteristic.stopNotifications()
     .then(_ => {
       log('Notifications stopped');
-      txCharacteristic.removeEventListener('characteristicvaluechanged', handleNotifications);
     })
     .catch(error => {
       log('Argh! ' + error);
     });
+  }
+
+  if (bluetoothDevice) {
+    if (bluetoothDevice.gatt.connected) {
+      log('Disconnecting from Bluetooth Device...');
+      bluetoothDevice.gatt.disconnect();
+    }
   }
 }
 
