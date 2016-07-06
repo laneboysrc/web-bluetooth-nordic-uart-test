@@ -129,6 +129,7 @@ function onSendButtonClick() {
     log('Sending string via RX characteristic...');
 
     function repeat(count) {
+      log('repeat() ' + count);
       if (count > 0) {
         rxCharacteristic.writeValue(str2ab("Hello world " + i + "\n"))
         .then(_ => {
