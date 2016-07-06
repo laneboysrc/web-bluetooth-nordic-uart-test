@@ -98,12 +98,12 @@ function onStartButtonClick() {
     //   //   })
     // ]);
   })
-  .then(tx_characteristic => {
+  .then(characteristic => {
     log('Starting notification...');
-    txCharacteristic = tx_characteristic;
+    txCharacteristic = characteristic;
     return txCharacteristic.startNotifications().then(_ => {
       log('Notifications started');
-      txCharacteristic.addEventListener('tx_characteristicvaluechanged', handleNotifications);
+      txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
     });
   })
   .catch(error => {
@@ -115,7 +115,7 @@ function handleTxCharacteristic(characteristic) {
   txCharacteristic = characteristic;
   return txCharacteristic.startNotifications().then(_ => {
     log('Notifications started');
-    txCharacteristic.addEventListener('tx_characteristicvaluechanged', handleNotifications);
+    txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
   });
 }
 
