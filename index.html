@@ -117,14 +117,14 @@ function onStartButtonClick() {
   });
 }
 
-function handleTxCharacteristic(characteristic) {
-  txCharacteristic = characteristic;
-  log('Starting notification...');
-  return txCharacteristic.startNotifications().then(_ => {
-    log('Notifications started');
-    txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
-  });
-}
+// function handleTxCharacteristic(characteristic) {
+//   txCharacteristic = characteristic;
+//   log('Starting notification...');
+//   return txCharacteristic.startNotifications().then(_ => {
+//     log('Notifications started');
+//     txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
+//   });
+// }
 
 function onStopButtonClick() {
   if (txCharacteristic) {
