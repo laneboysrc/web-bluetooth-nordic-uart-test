@@ -53,7 +53,6 @@ var NUS_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 var NUS_TX_CHARACTERISTIC_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 var NUS_RX_CHARACTERISTIC_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
 
-var log;
 var bluetoothDevice = null;
 var txCharacteristic = null;
 var rxCharacteristic = null;
@@ -68,6 +67,8 @@ var Logger = {
     document.querySelector('#log').textContent = '';
   },
 };
+var log = Logger.log;
+
 
 function onDisconnected(event) {
   log('Bluetooth Device disconnected');
@@ -100,12 +101,11 @@ function onStartButtonClick() {
   })
   .then(service => {
     log('Getting Characteristics...');
-    // return service.getCharacteristic(tx_characteristicUuid);
     return Promise.all([
       service.getCharacteristic(tx_characteristicUuid)
         .then(characteristic => {
-          log('Starting notification...');
           txCharacteristic = characteristic;
+          log('Tx charactersitic obtained');
           return txCharacteristic.startNotifications().then(_ => {
             log('Notifications started');
             txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
@@ -128,13 +128,14 @@ function onStopButtonClick() {
   if (txCharacteristic) {
     log('Stopping notifications...');
     txCharacteristic.removeEventListener('characteristicvaluechanged', handleNotifications);
-    txCharacteristic.stopNotifications()
-    .then(_ => {
-      log('Notifications stopped');
-    })
-    .catch(error => {
-      log('Argh! ' + error);
-    });
+    txCharacteristic = null;
+    // txCharacteristic.stopNotifications()
+    // .then(_ => {
+    //   log('Notifications stopped');
+    // })
+    // .catch(error => {
+    //   log('Argh! ' + error);
+    // });
   }
 
   if (bluetoothDevice) {
@@ -168,14 +169,6 @@ function onSendButtonClick() {
 
 function handleNotifications(event) {
   let value = event.target.value;
-  // let a = [];
-  // // Convert raw data bytes to hex values just for the sake of showing something.
-  // // In the "real" world, you'd use data.getUint8, data.getUint16 or even
-  // // TextDecoder to process raw data bytes.
-  // for (let i = 0; i < value.byteLength; i++) {
-  //   a.push('0x' + ('00' + value.getUint8(i).toString(16)).slice(-2));
-  // }
-  // log('> ' + a.join(' '));
 
   result = ''
   for (let i = 0; i < value.byteLength; i++) {
@@ -198,11 +191,6 @@ function isWebBluetoothEnabled() {
 }
 
 
-function ab2str(buf) {
-  return String.fromCharCode.apply(null, new Uint8Array(buf));
-}
-
-
 function str2ab(str) {
   var buf = new ArrayBuffer(str.length);
   var bufView = new Uint8Array(buf);
@@ -213,7 +201,6 @@ function str2ab(str) {
 }
 
 
-log = Logger.log;
 
 document.querySelector('#connect').addEventListener('click', function(event) {
   event.stopPropagation();
