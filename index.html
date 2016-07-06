@@ -97,11 +97,11 @@ function onStartButtonClick() {
             txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
           });
         }),
-    //   // service.getCharacteristic(rx_characteristicUuid)
-    //   //   .then(rx_characteristic => {
-    //   //     rxCharacteristic = rx_characteristic;
-    //   //     log('Rx charactersitic obtained');
-    //   //   })
+      service.getCharacteristic(rx_characteristicUuid)
+        .then(rx_characteristic => {
+          rxCharacteristic = rx_characteristic;
+          log('Rx charactersitic obtained');
+        }),
     ]);
   })
   // .then(characteristic => {
