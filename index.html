@@ -37,8 +37,8 @@ pre {
 
 <h1>Using the Nordic UART service with Web-Bluetooth</h1>
 <form>
-  <button id="startNotifications">Connect</button>
-  <button id="stopNotifications">Disconnect</button>
+  <button id="connect">Connect</button>
+  <button id="disconnect">Disconnect</button>
 </form>
 
 <h3>Log output</h3>
@@ -125,7 +125,7 @@ function onStopButtonClick() {
     .then(_ => {
       log('Notifications stopped');
       txCharacteristic.removeEventListener('characteristicvaluechanged', handleNotifications);
-      gattServer.disconnect();
+      // gattServer.disconnect();
     })
     .catch(error => {
       log('Argh! ' + error);
@@ -160,7 +160,7 @@ function isWebBluetoothEnabled() {
 
 log = Logger.log;
 
-document.querySelector('#startNotifications').addEventListener('click', function(event) {
+document.querySelector('#connect').addEventListener('click', function(event) {
   event.stopPropagation();
   event.preventDefault();
 
@@ -170,7 +170,7 @@ document.querySelector('#startNotifications').addEventListener('click', function
   }
 });
 
-document.querySelector('#stopNotifications').addEventListener('click', function(event) {
+document.querySelector('#disconnect').addEventListener('click', function(event) {
   event.stopPropagation();
   event.preventDefault();
 
